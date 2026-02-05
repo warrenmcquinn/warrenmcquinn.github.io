@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Welcome to the GitHub profile site for Warren McQuinn — software engineer at Bootcamp.com."
+    />
+
+    <meta property="og:title" content="Warren McQuinn" />
+    <meta
+      property="og:description"
+      content="A fun welcome page for Warren McQuinn’s GitHub profile."
+    />
+    <meta property="og:type" content="website" />
+
+    <title>Warren McQuinn · GitHub</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/styles.css" as="style" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas class="bg" id="bg" aria-hidden="true"></canvas>
+    <div class="waterline" aria-hidden="true"></div>
+    <div class="rig" id="rig" aria-hidden="true">
+      <div class="boat"></div>
+      <div class="rod"></div>
+      <div class="line">
+        <span class="hook" id="hook"></span>
+        <span class="caught" id="caughtFish"></span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="wrap">
+        <div class="brand" aria-label="Site header">
+          <a class="brand__mark" href="/" aria-label="Home">
+            <span aria-hidden="true">WM</span>
+          </a>
+          <div class="brand__text">
+            <div class="brand__name">Warren McQuinn</div>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="Primary">
+          <a href="#about">About</a>
+          <a href="#hello">Say hello</a>
+          <button class="nav__btn" id="themeToggle" type="button">
+            Theme
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="main">
+      <section class="hero">
+        <div class="wrap hero__grid">
+          <div class="hero__copy">
+            <p class="eyebrow">Welcome</p>
+            <h1 class="h1">
+              A handshake from<br>
+              <span class="accent">Warren McQuinn</span>.
+            </h1>
+            <p class="lead">
+              I build software at <strong>Bootcamp.com</strong>.
+            </p>
+            <div class="hero__actions">
+              <a class="btn btn--primary" href="#hello">Say hello</a>
+              <button
+                class="btn btn--ghost"
+                id="castBtn"
+                type="button"
+                aria-pressed="false"
+              >
+                Cast a line
+              </button>
+            </div>
+          </div>
+
+          <div class="hero__card" aria-label="Profile summary card">
+            <div class="card">
+              <div class="card__top">
+                <div class="pill">Bootcamp.com</div>
+                <div class="tide" aria-hidden="true"><span></span></div>
+              </div>
+              <div class="log-card">
+                <div class="log-card__title">Fishing log</div>
+                <div class="log-card__status" id="castNote">
+                  Hold to lower. Release to wait. Circle to reel.
+                </div>
+                <div class="log-card__last" id="lastCatch"></div>
+                <ol class="fish-log" id="fishLog"></ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section">
+        <div class="wrap">
+          <h2 class="h2">About</h2>
+          <div class="prose">
+            <p>
+              I build things that hold up in weather. In code, that means
+              <strong>reliability</strong> and <strong>good UX</strong>—with
+              fewer surprises after launch.
+            </p>
+            <p>I like a calm Gulf.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="hello" class="section">
+        <div class="wrap">
+          <h2 class="h2">Say hello</h2>
+          <div class="grid-2">
+            <div class="prose">
+              <p>
+                If you have a question or a collaboration idea, reach out.
+              </p>
+            </div>
+
+            <div class="contact">
+              <a
+                class="btn btn--primary btn--wide"
+                href="https://github.com/warrenmcquinn"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub: @warrenmcquinn
+              </a>
+              <a
+                class="btn btn--ghost btn--wide"
+                href="https://www.linkedin.com/in/warren-mcquinn-aa519027/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Visit LinkedIn
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer__grid">
+        <p class="micro">
+          © <span id="year"></span> WJM.
+        </p>
+      </div>
+    </footer>
+
+    <script src="assets/main.js" defer></script>
+  </body>
+</html>
