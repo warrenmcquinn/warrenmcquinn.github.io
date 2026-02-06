@@ -10,6 +10,8 @@
   const fishLogEl = document.getElementById("fishLog");
   const lastCatchEl = document.getElementById("lastCatch");
   const caughtFishEl = document.getElementById("caughtFish");
+  const reelPad = document.getElementById("reelPad");
+  const waterlineEl = document.querySelector(".waterline");
   const bg = document.getElementById("bg");
   const year = document.getElementById("year");
 
@@ -153,8 +155,9 @@
     let biteEnabled = true;
 
     function sizeCanvas() {
-      const cssWidth = Math.max(320, window.innerWidth || 0);
-      const cssHeight = Math.max(320, window.innerHeight || 0);
+      const vv = window.visualViewport;
+      const cssWidth = Math.max(320, vv?.width || window.innerWidth || 0);
+      const cssHeight = Math.max(320, vv?.height || window.innerHeight || 0);
       dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       width = Math.floor(cssWidth * dpr);
       height = Math.floor(cssHeight * dpr);
@@ -486,15 +489,17 @@
     }
 
     function setPointer(clientX, clientY) {
-      const cssW = width / dpr || window.innerWidth || 1;
-      const cssH = height / dpr || window.innerHeight || 1;
+      const vv = window.visualViewport;
+      const cssW = width / dpr || vv?.width || window.innerWidth || 1;
+      const cssH = height / dpr || vv?.height || window.innerHeight || 1;
       pointerX = Math.max(0, Math.min(1, clientX / cssW));
       pointerY = Math.max(0, Math.min(1, clientY / cssH));
     }
 
     function setBait(point) {
-      const cssW = width / dpr || window.innerWidth || 1;
-      const cssH = height / dpr || window.innerHeight || 1;
+      const vv = window.visualViewport;
+      const cssW = width / dpr || vv?.width || window.innerWidth || 1;
+      const cssH = height / dpr || vv?.height || window.innerHeight || 1;
       const surfaceY = cssH * 0.32;
       bait = {
         x: Math.max(0, Math.min(cssW, point.x)),
@@ -507,8 +512,9 @@
 
     function moveBait(point) {
       if (!bait) return;
-      const cssW = width / dpr || window.innerWidth || 1;
-      const cssH = height / dpr || window.innerHeight || 1;
+      const vv = window.visualViewport;
+      const cssW = width / dpr || vv?.width || window.innerWidth || 1;
+      const cssH = height / dpr || vv?.height || window.innerHeight || 1;
       const surfaceY = cssH * 0.32;
       bait = {
         x: Math.max(0, Math.min(cssW, point.x)),
@@ -592,7 +598,9 @@
   }
 
   function waterlineY() {
-    return (window.innerHeight || 0) * 0.32;
+    const rect = waterlineEl?.getBoundingClientRect?.();
+    if (rect && Number.isFinite(rect.top)) return rect.top;
+    return (window.visualViewport?.height || window.innerHeight || 0) * 0.32;
   }
 
   function setLineLen(px) {
@@ -720,6 +728,7 @@
     let steer = 0; // -1 left, +1 right
     let boatX = 40;
     let boatV = 0;
+    let boatTargetX = null;
 
     let gameRaf = 0;
     let lastT = 0;
@@ -732,6 +741,8 @@
     let reelAngle = null;
     let reelDir = 0;
     let reelCarry = 0;
+
+    let tapStart = null;
 
     function clamp(n, a, b) {
       return Math.max(a, Math.min(b, n));
@@ -783,6 +794,7 @@
     function landFish() {
       reeling = false;
       body.classList.remove("bite");
+      body.classList.remove("reel-mode");
       background?.clearBait?.();
       background?.setBiteEnabled?.(false);
 
@@ -837,6 +849,7 @@
         lineLenPx: Math.round(lineLen),
       };
       body.classList.add("bite");
+      body.classList.add("reel-mode");
       if (castNote) castNote.textContent = "Fish on. Circle the button to reel.";
       background?.setBiteEnabled?.(false);
       reeling = true;
@@ -847,7 +860,7 @@
     });
 
     function bounds() {
-      const w = window.innerWidth || 0;
+      const w = window.visualViewport?.width || window.innerWidth || 0;
       const rigW = rigEl?.getBoundingClientRect?.().width || 160;
       const pad = 10;
       return { min: pad, max: Math.max(pad, w - rigW - pad) };
@@ -859,6 +872,16 @@
 
       if (steer !== 0) {
         boatV += steer * motorAccel * dt;
+        boatTargetX = null;
+      } else if (boatTargetX != null) {
+        const err = boatTargetX - boatX;
+        const dir = Math.sign(err);
+        boatV += dir * motorAccel * dt;
+        if (Math.abs(err) < 8 && Math.abs(boatV) < 12) {
+          boatX = boatTargetX;
+          boatV = 0;
+          boatTargetX = null;
+        }
       } else {
         boatV *= Math.max(0, 1 - dt * 7.5);
       }
@@ -893,18 +916,17 @@
       }
     }
 
-  function reelFromPointer(clientX, clientY) {
-    if (!reeling || !castBtn) return;
-    const rect = castBtn.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = clientX - cx;
-    const dy = clientY - cy;
-    const r = Math.hypot(dx, dy);
-    const btnSize = Math.max(rect.width, rect.height) || 44;
-    const minR = Math.max(10, Math.min(26, btnSize * 0.25));
-    const maxR = Math.max(220, Math.min(420, btnSize * 6.5));
-    if (r < minR || r > maxR) return;
+    function reelFromPointer(clientX, clientY) {
+      if (!reeling || !castBtn) return;
+      const rect = castBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = clientX - cx;
+      const dy = clientY - cy;
+      const r = Math.hypot(dx, dy);
+      const btnSize = Math.max(rect.width, rect.height) || 44;
+      const minR = Math.max(10, Math.min(26, btnSize * 0.25));
+      if (r < minR) return;
 
       const ang = Math.atan2(dy, dx);
       if (reelAngle == null) {
@@ -1016,6 +1038,37 @@
       }
     });
 
+    function startTap(e) {
+      if (pressed || reeling) return;
+      if (!e) return;
+      tapStart = {
+        x: e.clientX,
+        y: e.clientY,
+        t: performance.now(),
+      };
+    }
+
+    function endTap(e) {
+      if (!tapStart || pressed || reeling) return;
+      const dt = performance.now() - tapStart.t;
+      const dx = (e?.clientX ?? tapStart.x) - tapStart.x;
+      const dy = (e?.clientY ?? tapStart.y) - tapStart.y;
+      const moved = Math.hypot(dx, dy);
+      const nearWater = Math.abs(tapStart.y - waterlineY()) < 70;
+      if (dt < 320 && moved < 14 && nearWater) {
+        const { min, max } = bounds();
+        boatTargetX = clamp(tapStart.x - 60, min, max);
+        startGame();
+      }
+      tapStart = null;
+    }
+
+    window.addEventListener("pointerdown", startTap, { passive: true });
+    window.addEventListener("pointerup", endTap, { passive: true });
+    window.addEventListener("pointercancel", () => (tapStart = null), {
+      passive: true,
+    });
+
     if (castBtn) {
       const down = (e) => {
         e.preventDefault?.();
@@ -1066,6 +1119,39 @@
       });
     }
 
+    if (reelPad) {
+      reelPad.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!reeling) return;
+          if (e.cancelable) e.preventDefault();
+          const t = e.touches?.[0];
+          if (!t) return;
+          reelFromPointer(t.clientX, t.clientY);
+        },
+        { passive: false }
+      );
+      reelPad.addEventListener(
+        "pointermove",
+        (e) => {
+          if (!reeling) return;
+          reelFromPointer(e.clientX, e.clientY);
+        },
+        { passive: true }
+      );
+      reelPad.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (!reeling) return;
+          reelAngle = null;
+          reelDir = 0;
+          reelCarry = 0;
+          reelFromPointer(e.clientX, e.clientY);
+        },
+        { passive: true }
+      );
+    }
+
     function syncMotion() {
       if (reduceMotion?.matches) {
         background?.stop?.();
@@ -1078,6 +1164,15 @@
     syncMotion();
     reduceMotion?.addEventListener?.("change", syncMotion);
     window.addEventListener(
+      "resize",
+      () => {
+        background?.resize?.();
+        stopGame();
+        startGame();
+      },
+      { passive: true }
+    );
+    window.visualViewport?.addEventListener?.(
       "resize",
       () => {
         background?.resize?.();

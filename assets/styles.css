@@ -72,6 +72,7 @@ a {
   left: 0;
   right: 0;
   top: 32vh;
+  top: 32svh;
   height: 2px;
   z-index: 0;
   pointer-events: none;
@@ -457,6 +458,7 @@ a {
   position: fixed;
   left: 0;
   top: 32vh;
+  top: 32svh;
   width: 160px;
   height: 44px;
   z-index: 10;
@@ -467,6 +469,23 @@ a {
   --rod-tilt: -18deg;
   --rod-flex: 0deg;
   transform: translate3d(var(--rig-x), 0, 0);
+}
+
+.reel-pad {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.reel-mode .reel-pad {
+  pointer-events: auto;
+}
+
+.reel-mode {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 @keyframes surface {
