@@ -52,6 +52,11 @@
       wid: 1.05,
       tail: 0.9,
       stripe: 0.3,
+      markAlpha: 0.32,
+      markX: "24%",
+      markW: "48%",
+      markH: "16%",
+      mark: "linear-gradient(90deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08))",
       tint: { r: 210, g: 220, b: 232 },
       tintMix: 0.55,
     },
@@ -62,6 +67,11 @@
       wid: 0.95,
       tail: 1.0,
       stripe: 0.12,
+      markAlpha: 0.22,
+      markX: "20%",
+      markW: "56%",
+      markH: "18%",
+      mark: "linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05))",
       tint: { r: 255, g: 124, b: 112 },
       tintMix: 0.68,
     },
@@ -72,6 +82,11 @@
       wid: 1.15,
       tail: 0.7,
       stripe: 0.55,
+      markAlpha: 0.55,
+      markX: "16%",
+      markW: "62%",
+      markH: "22%",
+      mark: "linear-gradient(90deg, rgba(47, 123, 255, 0.22), rgba(255, 255, 255, 0.18))",
       tint: { r: 242, g: 238, b: 224 },
       tintMix: 0.62,
     },
@@ -82,6 +97,11 @@
       wid: 1.0,
       tail: 1.08,
       stripe: 0.45,
+      markAlpha: 0.42,
+      markX: "18%",
+      markW: "58%",
+      markH: "18%",
+      mark: "linear-gradient(90deg, rgba(255, 178, 74, 0.18), rgba(255, 255, 255, 0.14))",
       tint: { r: 245, g: 214, b: 120 },
       tintMix: 0.62,
     },
@@ -92,6 +112,11 @@
       wid: 1.08,
       tail: 0.72,
       stripe: 0.18,
+      markAlpha: 0.48,
+      markX: "10%",
+      markW: "74%",
+      markH: "40%",
+      mark: "radial-gradient(circle at 18% 50%, rgba(0, 0, 0, 0.18), transparent 62%), radial-gradient(circle at 52% 34%, rgba(0, 0, 0, 0.12), transparent 60%), radial-gradient(circle at 72% 64%, rgba(0, 0, 0, 0.10), transparent 62%)",
       tint: { r: 255, g: 142, b: 124 },
       tintMix: 0.62,
     },
@@ -102,6 +127,11 @@
       wid: 1.1,
       tail: 0.74,
       stripe: 0.1,
+      markAlpha: 0.46,
+      markX: "10%",
+      markW: "74%",
+      markH: "40%",
+      mark: "radial-gradient(circle at 22% 55%, rgba(0, 0, 0, 0.16), transparent 62%), radial-gradient(circle at 55% 38%, rgba(0, 0, 0, 0.12), transparent 60%), radial-gradient(circle at 72% 68%, rgba(0, 0, 0, 0.10), transparent 62%)",
       tint: { r: 170, g: 206, b: 170 },
       tintMix: 0.55,
     },
@@ -115,10 +145,24 @@
       wid: 1.24,
       tail: 0.62,
       stripe: 0.08,
+      markAlpha: 0.5,
+      markX: "8%",
+      markW: "78%",
+      markH: "44%",
+      mark: "radial-gradient(circle at 22% 55%, rgba(0, 0, 0, 0.18), transparent 62%), radial-gradient(circle at 56% 38%, rgba(0, 0, 0, 0.12), transparent 60%), radial-gradient(circle at 74% 70%, rgba(0, 0, 0, 0.12), transparent 62%)",
       tint: { r: 170, g: 178, b: 150 },
       tintMix: 0.45,
     },
   ];
+
+  const SPECIES_BY_KEY = Object.fromEntries(
+    [...SPECIES, ...GIANT_SPECIES].map((s) => [s.key, s])
+  );
+
+  function speciesTraits(key) {
+    if (!key) return null;
+    return SPECIES_BY_KEY[key] || null;
+  }
 
   function pick(list) {
     return list[Math.floor(Math.random() * list.length)];
@@ -684,6 +728,31 @@
 
   function setCaughtFishStyle(stats) {
     if (!caughtFishEl) return;
+    const traits = speciesTraits(stats?.speciesKey);
+    const lengthIn = Number(stats?.lengthIn) || 0;
+    const sizeScale = Math.max(0.9, Math.min(2.2, lengthIn ? lengthIn / 18 : 1));
+    const giantScale = stats?.kind === "giant" ? 1.75 : 1;
+
+    caughtFishEl.dataset.species = stats?.speciesKey || "";
+    caughtFishEl.dataset.kind = stats?.kind || "";
+
+    if (rigEl && traits) {
+      const w = Math.round(18 * (traits.len || 1) * sizeScale * giantScale);
+      const h = Math.round(10 * (traits.wid || 1) * sizeScale * 0.9);
+      const tail = Math.round(6 * (traits.tail || 1) * Math.sqrt(sizeScale) * giantScale);
+      const stripeSrc =
+        typeof traits.markAlpha === "number" ? traits.markAlpha : (traits.stripe || 0) * 0.9;
+      const stripe = Math.max(0, Math.min(0.7, stripeSrc));
+      rigEl.style.setProperty("--caught-w", `${w}px`);
+      rigEl.style.setProperty("--caught-h", `${h}px`);
+      rigEl.style.setProperty("--caught-tail", `${tail}px`);
+      rigEl.style.setProperty("--caught-stripe", `${stripe}`);
+      rigEl.style.setProperty("--caught-mark-x", traits.markX || "22%");
+      rigEl.style.setProperty("--caught-mark-w", traits.markW || "52%");
+      rigEl.style.setProperty("--caught-mark-h", traits.markH || "18%");
+      rigEl.style.setProperty("--caught-pattern", traits.mark || "rgba(255, 255, 255, 0.25)");
+    }
+
     const tint = stats?.tint;
     if (tint && typeof tint.r === "number") {
       const c1 = `rgba(${tint.r}, ${tint.g}, ${tint.b}, 0.88)`;
@@ -741,6 +810,12 @@
     let reelAngle = null;
     let reelDir = 0;
     let reelCarry = 0;
+    let userPullPx = 0;
+
+    let fight = null;
+    let tension = 0;
+    let tensionHold = 0;
+    let spoolHold = 0;
 
     let tapStart = null;
 
@@ -791,10 +866,137 @@
       else background.setBait?.(p);
     }
 
+    function reelPct() {
+      const denom = Math.max(1, maxLen() - minLen);
+      const pct = (1 - (lineLen - minLen) / denom) * 100;
+      return clamp(Math.round(pct), 0, 100);
+    }
+
+    function createFight(stats) {
+      const lengthIn = Number(stats?.lengthIn) || 0;
+      const depth = Number(stats?.depthFt) || 0;
+      const kind = stats?.kind === "giant" ? "giant" : "school";
+      const traits = speciesTraits(stats?.speciesKey);
+      const base = 44 + depth * 4.2 + lengthIn * 2.4;
+      const mul = kind === "giant" ? 1.18 : 1;
+      const traitMul =
+        (traits?.key || "").includes("grouper") ? 1.08 : traits?.key === "triggerfish" ? 0.92 : 1;
+
+      const runStrength = clamp(base * mul * traitMul, 70, kind === "giant" ? 260 : 210);
+      const breakVel = kind === "giant" ? 560 : 480;
+      const breakTension = clamp(0.92 - (lengthIn - 18) / 180, 0.86, 0.94);
+      const breakHold = kind === "giant" ? 0.52 : 0.6;
+
+      return {
+        kind,
+        runStrength,
+        breakVel,
+        breakTension,
+        breakHold,
+        running: false,
+        timer: 0.35 + Math.random() * 0.6,
+        phase: Math.random() * Math.PI * 2,
+        pullEma: 0,
+        lastPullPx: userPullPx,
+      };
+    }
+
+    function updateFight(dt, now) {
+      if (!reeling) {
+        body.classList.remove("running");
+        fight = null;
+        tension = 0;
+        tensionHold = 0;
+        spoolHold = 0;
+        return;
+      }
+
+      if (!fight && pendingCatch) fight = createFight(pendingCatch);
+      if (!fight) return;
+
+      const dPull = Math.max(0, userPullPx - (fight.lastPullPx || 0));
+      fight.lastPullPx = userPullPx;
+      const pullVelRaw = dPull / Math.max(0.001, dt);
+      fight.pullEma = fight.pullEma * 0.86 + pullVelRaw * 0.14;
+
+      fight.timer -= dt;
+      if (fight.timer <= 0) {
+        fight.running = !fight.running;
+        const jitter = Math.random() * 0.35;
+        if (fight.running) fight.timer = 0.55 + jitter + (fight.kind === "giant" ? 0.35 : 0);
+        else fight.timer = 0.35 + jitter + (fight.kind === "giant" ? 0.15 : 0);
+      }
+
+      let fishPullVel = 0;
+      if (fight.running) {
+        const wave = 0.65 + 0.35 * Math.sin(now * 0.006 + fight.phase);
+        fishPullVel = fight.runStrength * wave;
+        lineLen = clamp(lineLen + fishPullVel * dt, minLen, maxLen());
+        setLineLen(lineLen);
+      }
+
+      body.classList.toggle("running", fight.running);
+
+      const tNow = clamp((fight.pullEma + fishPullVel * 0.9) / fight.breakVel, 0, 1);
+      tension = tension * 0.88 + tNow * 0.12;
+
+      if (fight.running && tension > fight.breakTension) {
+        tensionHold += dt;
+      } else {
+        tensionHold = Math.max(0, tensionHold - dt * 1.3);
+      }
+
+      if (lineLen >= maxLen() - 2) spoolHold += dt;
+      else spoolHold = Math.max(0, spoolHold - dt * 1.2);
+
+      if (tensionHold > fight.breakHold) {
+        loseFish("Snap. Too much tension.");
+        return;
+      }
+      if (spoolHold > 0.9 && fight.running) {
+        loseFish("Spool out. Fish off.");
+        return;
+      }
+
+      if (castNote) {
+        const run = fight.running ? " · Run" : "";
+        castNote.textContent = `Reel: ${reelPct()}% · Tension: ${Math.round(
+          tension * 100
+        )}%${run}`;
+      }
+    }
+
+    function loseFish(message) {
+      reeling = false;
+      pressed = false;
+      fight = null;
+      tension = 0;
+      tensionHold = 0;
+      spoolHold = 0;
+      userPullPx = 0;
+      pendingCatch = null;
+
+      body.classList.remove("bite", "reel-mode", "running", "dropping");
+      background?.clearBait?.();
+      background?.setBiteEnabled?.(false);
+
+      lineLen = minLen;
+      setLineLen(lineLen);
+
+      if (castNote) castNote.textContent = message || "Fish off.";
+      if (castBtn) castBtn.disabled = false;
+    }
+
     function landFish() {
       reeling = false;
       body.classList.remove("bite");
       body.classList.remove("reel-mode");
+      body.classList.remove("running");
+      fight = null;
+      tension = 0;
+      tensionHold = 0;
+      spoolHold = 0;
+      userPullPx = 0;
       background?.clearBait?.();
       background?.setBiteEnabled?.(false);
 
@@ -900,12 +1102,18 @@
       setRigX(boatX);
 
       const speed = clamp(boatV / 120, -1, 1);
-      const tension = clamp((lineLen - minLen) / (maxLen() - minLen), 0, 1);
+      const depthLoad = clamp((lineLen - minLen) / (maxLen() - minLen), 0, 1);
       const bite = body.classList.contains("bite");
 
-      const lineTilt = clamp(-3 + speed * 3 + (pressed ? 1 : 0), -10, 10);
-      const rodTilt = -18 + tension * 10 + (bite ? 10 : 0) + (reeling ? 8 : 0);
-      const rodFlex = -(tension * 6 + (bite ? 8 : 0) + (reeling ? 4 : 0));
+      const fightLoad = reeling ? tension : 0;
+      const load = clamp(depthLoad * 0.7 + fightLoad * 0.9, 0, 1);
+      const runWobble = body.classList.contains("running")
+        ? Math.sin(now * 0.016) * 2.2
+        : 0;
+
+      const lineTilt = clamp(-3 + speed * 3 + (pressed ? 1 : 0) + runWobble, -14, 14);
+      const rodTilt = -18 + load * 10 + (bite ? 10 : 0) + (reeling ? 8 : 0);
+      const rodFlex = -(load * 6 + (bite ? 8 : 0) + (reeling ? 4 : 0));
       setTilts({ lineTiltDeg: lineTilt, rodTiltDeg: rodTilt, rodFlexDeg: rodFlex });
     }
 
@@ -925,7 +1133,7 @@
       const dy = clientY - cy;
       const r = Math.hypot(dx, dy);
       const btnSize = Math.max(rect.width, rect.height) || 44;
-      const minR = Math.max(10, Math.min(26, btnSize * 0.25));
+      const minR = Math.max(8, Math.min(22, btnSize * 0.18));
       if (r < minR) return;
 
       const ang = Math.atan2(dy, dx);
@@ -943,7 +1151,9 @@
       const s = Math.sign(d);
       if (!reelDir) reelDir = s;
       if (s !== reelDir) {
-        reelCarry = Math.max(0, reelCarry - Math.abs(d) * 0.6);
+        if (Math.abs(d) < 0.18) return; // touch wobble
+        reelDir = s;
+        reelCarry = 0;
         return;
       }
 
@@ -952,22 +1162,12 @@
       if (revs < 0.02) return;
       reelCarry -= revs * (Math.PI * 2);
 
+      userPullPx += revs * reelPxPerRev;
       lineLen = Math.max(minLen, lineLen - revs * reelPxPerRev);
       setLineLen(lineLen);
       if (lineLen <= minLen + 0.5) {
         landFish();
         return;
-      }
-
-      if (castNote) {
-        const pct = Math.max(
-          0,
-          Math.min(
-            100,
-            Math.round((1 - (lineLen - minLen) / (maxLen() - minLen)) * 100)
-          )
-        );
-        castNote.textContent = `Reel: ${pct}%`;
       }
     }
 
@@ -999,6 +1199,7 @@
 
       updateLine(dt);
       updateMotor(dt, now);
+      updateFight(dt, now);
       updateStatus();
 
       const allowBite = !pressed && !reeling;
@@ -1151,6 +1352,31 @@
         { passive: true }
       );
     }
+
+    window.addEventListener(
+      "touchstart",
+      (e) => {
+        if (!reeling) return;
+        const t = e.touches?.[0];
+        if (!t) return;
+        reelAngle = null;
+        reelDir = 0;
+        reelCarry = 0;
+        reelFromPointer(t.clientX, t.clientY);
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!reeling) return;
+        if (e.cancelable) e.preventDefault();
+        const t = e.touches?.[0];
+        if (!t) return;
+        reelFromPointer(t.clientX, t.clientY);
+      },
+      { passive: false }
+    );
 
     function syncMotion() {
       if (reduceMotion?.matches) {

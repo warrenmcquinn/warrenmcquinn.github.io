@@ -468,6 +468,14 @@ a {
   --tilt: -3deg;
   --rod-tilt: -18deg;
   --rod-flex: 0deg;
+  --caught-w: 18px;
+  --caught-h: 10px;
+  --caught-tail: 6px;
+  --caught-stripe: 0;
+  --caught-mark-x: 22%;
+  --caught-mark-w: 52%;
+  --caught-mark-h: 18%;
+  --caught-pattern: rgba(255, 255, 255, 0.25);
   transform: translate3d(var(--rig-x), 0, 0);
 }
 
@@ -607,14 +615,29 @@ a {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 18px;
-  height: 10px;
+  width: var(--caught-w);
+  height: var(--caught-h);
   border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--text) 16%, transparent);
   opacity: 0;
   transform: translate(8px, -6px) rotate(-8deg) scale(0.9);
   transition: opacity 220ms ease, transform 220ms ease;
-  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9), transparent 55%),
+  background:
+    radial-gradient(circle at 72% 44%, rgba(0, 0, 0, 0.38) 0 1.4px, transparent 1.5px),
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9), transparent 55%),
     linear-gradient(90deg, color-mix(in oklab, var(--accent2) 70%, transparent), color-mix(in oklab, var(--accent) 55%, transparent));
+}
+.caught::before {
+  content: "";
+  position: absolute;
+  left: var(--caught-mark-x);
+  top: 45%;
+  width: var(--caught-mark-w);
+  height: var(--caught-mark-h);
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: var(--caught-pattern);
+  opacity: var(--caught-stripe);
 }
 .caught::after {
   content: "";
@@ -624,9 +647,10 @@ a {
   width: 0;
   height: 0;
   transform: translateY(-50%);
-  border-left: 6px solid color-mix(in oklab, var(--accent) 55%, transparent);
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
+  border-left: var(--caught-tail) solid
+    color-mix(in oklab, var(--accent) 55%, transparent);
+  border-top: calc(var(--caught-h) * 0.32) solid transparent;
+  border-bottom: calc(var(--caught-h) * 0.32) solid transparent;
   opacity: 0.9;
 }
 
@@ -637,6 +661,15 @@ a {
   opacity: 1;
   transform: translate(8px, -6px) rotate(6deg) scale(1);
   animation: wriggle 900ms ease-in-out infinite;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.caught[data-kind="giant"] {
+  border-color: color-mix(in oklab, var(--text) 26%, transparent);
+}
+
+.running .rig .caught {
+  animation-duration: 520ms;
 }
 
 .landed .rig .caught {
@@ -647,6 +680,22 @@ a {
 
 #castBtn {
   touch-action: none;
+}
+
+.controls {
+  position: fixed;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 12;
+  pointer-events: auto;
+}
+.controls__btn {
+  min-width: 160px;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.22);
+}
+.reel-mode .controls__btn {
+  border-color: color-mix(in oklab, var(--accent2) 45%, var(--stroke));
 }
 
 @keyframes wriggle {
