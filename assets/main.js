@@ -1270,15 +1270,16 @@
       passive: true,
     });
 
-    if (castBtn) {
-      const down = (e) => {
-        e.preventDefault?.();
-        pressStart();
-      };
-      const up = (e) => {
-        e.preventDefault?.();
-        pressEnd();
-      };
+	    if (castBtn) {
+	      const down = (e) => {
+	        e.preventDefault?.();
+	        pressStart();
+	      };
+	      const up = (e) => {
+	        if (!pressed) return;
+	        e.preventDefault?.();
+	        pressEnd();
+	      };
 
       castBtn.addEventListener("pointerdown", (e) => {
         castBtn.setPointerCapture?.(e.pointerId);
